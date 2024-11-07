@@ -16,7 +16,7 @@
       :columns="columns"
       row-key="id"
       :rows-per-page-options="[5, 10, 15]"
-      v-model:pagination="pagination" <!-- Use v-model:pagination instead of .sync -->
+      v-model:pagination="pagination"
     />
   </q-page>
 </template>
@@ -44,9 +44,16 @@ export default {
       ],
       pagination: {
         page: 1,
-        rowsPerPage: 5
+        rowsPerPage: 5,
+        rowsNumber: 0 // Add this to track the total number of rows
       }
     };
+  },
+  watch: {
+    // Watch pagination for changes and update the rowsNumber
+    pagination(newValue) {
+      this.pagination.rowsNumber = this.books.length;
+    }
   }
 }
 </script>
