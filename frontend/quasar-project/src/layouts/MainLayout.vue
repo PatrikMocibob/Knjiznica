@@ -88,12 +88,30 @@ const linksList = [
     icon: 'public',
     link: '#/Login'
   },
+  
   {
     title: 'Registracija',
     caption: 'Kreiraj racun',
     icon: 'favorite',
     link: '#/Registracija'
+  },
+
+  {
+    title: 'PopisKnjigaBaza',
+    caption: 'baza',
+    icon: 'book',
+    link: '#/Baza'
+  },
+
+  {
+    title: 'Rezervacije',
+    caption: 'Rezervacije',
+    icon: 'book',
+    link: '#/Rezervacije'
   }
+
+
+
 ]
 
 const leftDrawerOpen = ref(false)

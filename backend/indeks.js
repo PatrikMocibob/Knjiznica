@@ -5,6 +5,7 @@ const mysql = require("mysql");
 
 const app = express();
 const port = 3000;
+app.use(cors());
 
 // Parser za JSON podatke
 app.use(bodyParser.json());
