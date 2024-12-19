@@ -44,7 +44,7 @@ app.get("/api/knjige/:id", (request, response) => {
   );
 });
 
-// Dodavanje rezervacije
+
 app.post("/api/rezerv_knjige", (request, response) => {
   const data = request.body;
   const rezervacija = [[data.datum, data.id_knjiga, data.id_korisnik]];
@@ -58,7 +58,7 @@ app.post("/api/rezerv_knjige", (request, response) => {
   );
 });
 
-// 1. Ukupan broj knjiga kod korisnika
+
 app.get("/api/korisnik/:id/broj-knjiga", (request, response) => {
   const idKorisnik = request.params.id;
   connection.query(
@@ -71,7 +71,7 @@ app.get("/api/korisnik/:id/broj-knjiga", (request, response) => {
   );
 });
 
-// 2. Broj slobodnih primjeraka knjige
+
 app.get("/api/knjige/:id/slobodne", (request, response) => {
   const idKnjiga = request.params.id;
   connection.query(
@@ -87,7 +87,7 @@ app.get("/api/knjige/:id/slobodne", (request, response) => {
   );
 });
 
-// 3. Broj rezerviranih primjeraka
+
 app.get("/api/knjige/:id/rezervirano", (request, response) => {
   const idKnjiga = request.params.id;
   connection.query(
@@ -100,7 +100,7 @@ app.get("/api/knjige/:id/rezervirano", (request, response) => {
   );
 });
 
-// 4. Korisnici s određenom knjigom
+
 app.get("/api/knjige/:id/korisnici", (request, response) => {
   const idKnjiga = request.params.id;
   connection.query(
@@ -116,7 +116,7 @@ app.get("/api/knjige/:id/korisnici", (request, response) => {
   );
 });
 
-// 5. Ukupan broj primjeraka knjiga
+
 app.get("/api/knjige/ukupno", (request, response) => {
   connection.query(
     "SELECT SUM(stanje) AS ukupnoKnjiga FROM knjiga",
@@ -127,7 +127,7 @@ app.get("/api/knjige/ukupno", (request, response) => {
   );
 });
 
-// 6. Ukupan broj rezerviranih primjeraka
+
 app.get("/api/rezervacije/ukupno", (request, response) => {
   connection.query(
     "SELECT COUNT(*) AS ukupnoRezervirano FROM rezervacija",
@@ -138,7 +138,7 @@ app.get("/api/rezervacije/ukupno", (request, response) => {
   );
 });
 
-// 7. Ukupan broj slobodnih primjeraka
+
 app.get("/api/knjige/slobodne", (request, response) => {
   connection.query(
     `SELECT SUM(knjiga.stanje) - COUNT(rezervacija.id) AS ukupnoSlobodno 
@@ -151,7 +151,7 @@ app.get("/api/knjige/slobodne", (request, response) => {
   );
 });
 
-// 8. Knjige s manje od 3 primjerka
+
 app.get("/api/knjige/nedostatne", (request, response) => {
   connection.query(
     "SELECT * FROM knjiga WHERE stanje < 3",
@@ -162,7 +162,7 @@ app.get("/api/knjige/nedostatne", (request, response) => {
   );
 });
 
-// 9. Korisnici s rezervacijama starijim od mjesec dana
+
 app.get("/api/rezervacije/starije-od-mjesec-dana", (request, response) => {
   connection.query(
     `SELECT korisnik.id, korisnik.ime, korisnik.prezime, knjiga.naslov, rezervacija.datum_rez 
@@ -177,7 +177,7 @@ app.get("/api/rezervacije/starije-od-mjesec-dana", (request, response) => {
   );
 });
 
-// 10-11. Slanje podsjetnika korisnicima
+
 app.get("/api/podsjetnik", (request, response) => {
   connection.query(
     `SELECT korisnik.email, korisnik.broj_telefona, knjiga.naslov, rezervacija.datum_rez 
@@ -192,7 +192,7 @@ app.get("/api/podsjetnik", (request, response) => {
   );
 });
 
-// 12. Provjera duplih rezervacija korisnika
+
 app.get("/api/korisnik/:id/duple-rezervacije", (request, response) => {
   const idKorisnik = request.params.id;
   connection.query(
@@ -209,7 +209,7 @@ app.get("/api/korisnik/:id/duple-rezervacije", (request, response) => {
   );
 });
 
-// 13. Ažuriranje podataka korisnika
+
 app.put("/api/korisnik/:id", (request, response) => {
   const idKorisnik = request.params.id;
   const { ime, prezime, email, broj_telefona } = request.body;
@@ -229,7 +229,7 @@ app.put("/api/korisnik/:id", (request, response) => {
   );
 });
 
-// 14. Vraćanje knjige i arhiviranje rezervacije
+
 app.post("/api/rezervacija/vrati", (request, response) => {
   const { idRezervacija, datumVracanja } = request.body;
 
@@ -257,7 +257,46 @@ app.post("/api/rezervacija/vrati", (request, response) => {
   );
 });
 
-// Pokretanje servera
+
+app.get("/api/rezervirane_knjige", (request, response) => {
+  connection.query(
+    `SELECT
+  knjiga.naslov,
+  knjiga.autor,
+  CONCAT(korisnik.ime, ' ', korisnik.prezime) AS korisnik,
+  rezervacija.datum_rez
+  FROM rezervacija
+  JOIN knjiga ON rezervacija.knjiga = knjiga.id
+  JOIN korisnik ON rezervacija.korisnik = korisnik.id`,
+    (error, results) => {
+      if (error) throw error;
+      response.send(results);
+    }
+  );
+});
+
+app.post("/api/unos_knjige", (req, res) => {
+  const data = req.body;
+  knjiga = [[ data.naslov, data.autor, data.opis, data.slika, data.stanje]]
+  connection.query("INSERT INTO knjiga (naslov, autor, opis, slika, stanje) VALUES ?",
+    [knjiga], (error, results) => {
+      if (error) throw error;
+      res.send(results);
+    }
+  );
+});
+
+const fetchRezervacije = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/rezervirane_knjige');
+    console.log(response.data);
+    rezervacije.value = response.data;
+  } catch (error) {
+    console.error('Greška pri dohvaćanju rezervacija:', error);
+  }
+};
+
+
 app.listen(port, () => {
   console.log("Server running at port: " + port);
 });
